@@ -143,7 +143,12 @@ double parallel_do_work(Bank &bank, int iterations, int num_threads) {
 	//final sanity check (there seems to be rounding issues)
 	cout << "Final balance: " << balance(bank) << endl;
 	//Return the max time (throughput of the slowest thread)
-	double max_time = *max_element(exec_times.begin(), exec_times.end());
+	double max_time = exec_times[0];
+	for (size_t i = 1; i < exec_times.size(); ++i) {
+		if (exec_times[i] > max_time) {
+			max_time = exec_times[i];
+		}
+	}
 	return max_time;
 }
 

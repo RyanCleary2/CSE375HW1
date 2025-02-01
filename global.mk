@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Wall -Wextra -std=c++17 -O3
+CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -lpthread
 
 # Target executable
 TARGET = global_hw1
