@@ -6,6 +6,7 @@
 #include <mutex>
 #include <random>
 #include <chrono>
+#include <fstream>
 using namespace std;
 
 // Step 1 & 2
@@ -57,7 +58,7 @@ void deposit(Bank &bank) {
 
 	int account1 = account(generator);
 	int account2 = account(generator);
-	double amount = transfer(generator) / 100.0;
+	float amount = std::round(transfer(generator) / 100.0);
 
 	//If the accounts are the same nothing happens
 	//If the accounts are different, use lock_guard to lock both accounts
@@ -204,20 +205,29 @@ void remove_map(Bank &bank) {
 	// application without synchronization primitives
 //Main to run (I am going to test more this weekend and try one more solution and plot it)
 int main() {
-	//Create the bank
-	Bank bank;
+	std::ofstream outFile("output.txt");
+	vector<int> workloads = {10000000};
 
-	//Run the parallel work with different thread counts
-	vector<int> thread_counts = {1, 2, 4, 8, 16, 24};
-	for (int num_threads : thread_counts) {
-		double max_parallel_time = parallel_do_work(bank, 5000000, num_threads);
-		cout << "Max parallel execution time with " << num_threads << " threads: " << max_parallel_time << " seconds" << endl;
+	for(int workload : workloads) {
+		// Run the parallel work with different thread counts
+		outFile << workload << ": ";
+		vector<int> thread_counts = {100, 1000, 10000, 20000};
+		for (int num_threads : thread_counts) {
+			Bank parallel_bank;
+			double max_parallel_time = parallel_do_work(parallel_bank, workload, num_threads);
+			cout << "Max parallel execution time with " << num_threads << " threads: " << max_parallel_time << " seconds" << endl;
+			outFile << max_parallel_time << " ";
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			remove_map(parallel_bank);
+		}
+		outFile << endl;
+		// Run the sequential work
+		Bank bank;
+		double sequential_time = sequential_do_work(bank, workload);
+		cout << "Sequential execution time: " << sequential_time << " seconds" << endl;
+		outFile << "Sequential: " << sequential_time << endl;
+		remove_map(bank);
 	}
-	//Run the sequential work
-	double sequential_time = sequential_do_work(bank, 5000000);
-	cout << "Sequential execution time: " << sequential_time << " seconds" << endl;
-
-	remove_map(bank);
+	outFile.close();
 	return 0;
-	//TODO: Make script that exports results to a graph 
 }
